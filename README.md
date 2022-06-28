@@ -1,2 +1,2 @@
 # discord-captcha-bot
-A bot discord to protect servers from bots using a Captcha
+A discord bot to protect servers from bots using a Captcha

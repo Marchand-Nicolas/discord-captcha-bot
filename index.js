@@ -103,7 +103,7 @@ client.on('interactionCreate', async (interaction) => {
 			.setTitle('Captcha')
 			.setDescription('The server is protected against bots using a Captcha, click on **Verify** to access the server.')
 			channel.send({ 
-			embeds: [embed],
+				embeds: [embed],
 				components: [row]
 			})
 			channel.permissionOverwrites.edit(interaction.guild.id, { SEND_MESSAGES: false, VIEW_CHANNEL: true, READ_MESSAGE_HISTORY: true });

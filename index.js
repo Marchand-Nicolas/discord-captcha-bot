@@ -1,17 +1,25 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Client, Intents, Permissions, MessageAttachment, MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
-const { token, clientId } = require('./config.json');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 const fs = require('node:fs');
 const Captcha = require("@haileybot/captcha-generator");
-client.login(token);
 
 const everyonePerms = {
 	permission: false,
 };
 
 let verifyCollectors = {}
+
+let token = process.env.TOKEN;
+let clientId = process.env.CLIENT_ID;
+try {
+	token = require('./config.json').token;
+	clientId = require('./config.json').clientId;
+}
+catch {}
+
+client.login(token);
 
 const commands = [
 	{

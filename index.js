@@ -124,7 +124,7 @@ client.on('interactionCreate', async (interaction) => {
 						.setStyle('SUCCESS'),
 			);
 			channel.permissionOverwrites.edit(clientId, { SEND_MESSAGES: true, VIEW_CHANNEL: true}).catch()
-			/*const embed = new MessageEmbed()
+			const embed = new MessageEmbed()
 			.setColor('#32a852')
 			.setTitle('Captcha')
 			.setDescription('The server is protected against bots using a Captcha, click on **Verify** to access the server.')
@@ -138,7 +138,7 @@ client.on('interactionCreate', async (interaction) => {
 			role.setPermissions(Permissions.FLAGS.VIEW_CHANNEL);
 			await interaction.reply(
 				`✅ Everything has been successfully set up in <#${channel.id}>`
-			);*/
+			);
 		}
 	}
 	else if (interaction.isButton()) {

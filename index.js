@@ -5,10 +5,6 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 const fs = require('node:fs');
 const Captcha = require("@haileybot/captcha-generator");
 
-const everyonePerms = {
-	permission: false,
-};
-
 let verifyCollectors = {}
 
 let token = process.env.TOKEN;
@@ -29,7 +25,6 @@ const commands = [
 	{
 		name: 'captcha',
 		description: 'set up the captcha system in the specified channel to protect your server',
-		permissions: [everyonePerms],
 		options: [
 			{
 				name: 'channel',

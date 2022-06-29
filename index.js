@@ -165,6 +165,7 @@ client.on('interactionCreate', async (interaction) => {
 			<a:Loading:991374833541718156> <@${member.id}> please enter the letters you see in the image (Captcha) to access the server.\n
 			Expires <t:${date}:R>
 			`)
+			.setThumbnail('https://i.imgur.com/m2jRNLg.png')
 			interaction.reply({
 				embeds: [embed],
 				files: [new MessageAttachment(captcha.JPEGStream, "captcha.jpeg")],

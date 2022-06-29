@@ -100,6 +100,7 @@ client.on('interactionCreate', async (interaction) => {
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) missingPermissions.push("Manage Messages")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) missingPermissions.push("Manage Roles")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) missingPermissions.push("Manage Channels")
+			if (!botRole.permissions.has(Permissions.FLAGS.ADD_REACTIONS)) missingPermissions.push("Add Reactions")
 			if (missingPermissions.length > 0) return replyError(interaction, `These permissions are missing for the role <@&${botRole.id}> : \`${missingPermissions.join(', ')}\``);
 			missingChannelPermissions = []
 			if(!channel.permissionsFor(client.user.id).has(['VIEW_CHANNEL'])) missingChannelPermissions.push("View Channel")
@@ -181,14 +182,18 @@ client.on('interactionCreate', async (interaction) => {
 					if (message.content.toUpperCase() === captcha.value) {
 						verifyCollectors[member.id].stop();
 						interaction.channel.permissionOverwrites.delete(member.id);
-						message.delete();
 						member.roles.add(role).catch(console.error);
-						return;
+						message.react('✅');
+						setTimeout(() => {
+							message.delete()
+						}, 1000);
 					}
-					message.react('❌');
-					setTimeout(() => {
-						message.delete()
-					}, 1000);
+					else {
+						message.react('❌');
+						setTimeout(() => {
+							message.delete()
+						}, 1000);
+					}
 				});
 				verifyCollectors[member.id].on("end", () => {
 					delete verifyCollectors[member.id];

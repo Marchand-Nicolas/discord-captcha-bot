@@ -121,9 +121,10 @@ client.on('interactionCreate', async (interaction) => {
 			);
 			channel.permissionOverwrites.edit(clientId, { SEND_MESSAGES: true, VIEW_CHANNEL: true}).catch()
 			const embed = new MessageEmbed()
-			.setColor('#32a852')
-			.setTitle('Captcha')
+			.setColor('#74d579')
+			.setTitle('Are you a robot ?')
 			.setDescription('The server is protected against bots using a Captcha, click on **Verify** to access the server.')
+			.setAuthor({name:'Captcha', iconURL:'https://i.imgur.com/m2jRNLg.png'})
 			channel.send({ 
 				embeds: [embed],
 				components: [row]
@@ -158,7 +159,7 @@ client.on('interactionCreate', async (interaction) => {
 			let captcha = new Captcha();
 			const date = (new Date(new Date().getTime()+(maxInteractionDuration)).getTime() / 1000).toFixed(0);
 			const embed = new MessageEmbed()
-			.setColor('#32a852')
+			.setColor('#74d579')
 			.setTitle('Captcha')
 			.setDescription(`
 			<a:Loading:991374833541718156> <@${member.id}> please enter the letters you see in the image (Captcha) to access the server.\n

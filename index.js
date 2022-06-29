@@ -21,6 +21,7 @@ process.on('uncaughtException', (err, origin) => {
 	console.log(err, origin)
 })
 
+
 const commands = [
 	{
 		name: 'captcha',
@@ -39,9 +40,35 @@ const commands = [
 				type: 8,
 				required: true,
 			},
+			{
+				name: 'custom-avatar',
+				description: 'custom avatar for the bot, not required',
+				type: 11,
+				required: false,
+			},
+			{
+				name: 'custom-name',
+				description: 'custom name for the bot, not required',
+				type: 3,
+				required: false,
+			},
+			{
+				name: 'custom-title',
+				description: 'custom title for the embed, not required',
+				type: 3,
+				required: false,
+			},
+			{
+				name: 'custom-description',
+				description: 'custom description for the embed, not required',
+				type: 3,
+				required: false,
+			}
 		]
 	},
 ];
+
+
 
 const rest = new REST({ version: '9' }).setToken(token);
 
@@ -86,6 +113,10 @@ client.on('interactionCreate', async (interaction) => {
 			if (!checkBotRolePosition(role, interaction.guild)) return replyError(interaction, 'My role need to be higher than the role you specified.');
 			let missingPermissions = []
 			const botRole = interaction.guild.me.roles.highest
+			const customBotAvatar = interaction.options.get("custom-avatar")
+			const customBotName = interaction.options.get("custom-name")
+			const customTitle = interaction.options.get("custom-title")
+			const customDescription = interaction.options.get("custom-description")
 			if (!botRole.permissions.has(Permissions.FLAGS.VIEW_CHANNEL)) missingPermissions.push("View Channel")
 			if (!botRole.permissions.has(Permissions.FLAGS.SEND_MESSAGES)) missingPermissions.push("Send Messages")
 			if (!botRole.permissions.has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS)) missingPermissions.push("Use External Emojis")
@@ -96,6 +127,7 @@ client.on('interactionCreate', async (interaction) => {
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) missingPermissions.push("Manage Roles")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) missingPermissions.push("Manage Channels")
 			if (!botRole.permissions.has(Permissions.FLAGS.ADD_REACTIONS)) missingPermissions.push("Add Reactions")
+			if ((customBotAvatar || customBotName) && !botRole.permissions.has(Permissions.FLAGS.MANAGE_WEBHOOKS)) missingPermissions.push("Manage Webhooks (only required for custom avatar and custom name)")
 			if (missingPermissions.length > 0) return replyError(interaction, `These permissions are missing for the role <@&${botRole.id}> : \`${missingPermissions.join(', ')}\``);
 			missingChannelPermissions = []
 			if(!channel.permissionsFor(client.user.id).has(['VIEW_CHANNEL'])) missingChannelPermissions.push("View Channel")
@@ -107,7 +139,6 @@ client.on('interactionCreate', async (interaction) => {
 			if(!channel.permissionsFor(client.user.id).has(['MANAGE_MESSAGES'])) missingChannelPermissions.push("Manage Messages")
 			if(!channel.permissionsFor(client.user.id).has(['MANAGE_ROLES'])) missingChannel.push("Manage Roles")
 			if(!channel.permissionsFor(client.user.id).has(['MANAGE_CHANNELS'])) missingChannelPermissions.push("Manage Channel")
-			console.log(channel.permissionsFor(client.user.id))
 
 			if (missingChannelPermissions.length > 0) return replyError(interaction, 
 			`The global permissions for my role are correct, however, some of the permissions I need in this channel are missing. Please add the following permissions for me in the targeted channel: \`${missingChannelPermissions.join(', ')}\`\n
@@ -122,10 +153,22 @@ client.on('interactionCreate', async (interaction) => {
 			channel.permissionOverwrites.edit(clientId, { SEND_MESSAGES: true, VIEW_CHANNEL: true}).catch()
 			const embed = new MessageEmbed()
 			.setColor('#74d579')
-			.setTitle('Are you a robot ?')
-			.setDescription('The server is protected against bots using a Captcha, click on **Verify** to access the server.')
+			.setTitle(customTitle ? customTitle.value : 'Are you a robot ?')
+			.setDescription(customDescription ? customDescription.value : 'The server is protected against bots using a Captcha, click on **Verify** to access the server.')
 			.setAuthor({name:'Captcha', iconURL:'https://i.imgur.com/m2jRNLg.png'})
-			channel.send({ 
+			if (customBotAvatar || customBotName) {
+				const webhooks = await channel.fetchWebhooks();
+				let webhook = webhooks.find(wh => wh.token);
+				if (!webhook) {
+					webhook = await channel.createWebhook("Captcha")
+				}
+				webhook.send({
+					username: customBotName ? customBotName.value : "Captcha",
+					avatarURL: customBotAvatar ? customBotAvatar.attachment.url : client.user.avatarURL(),
+					embeds: [embed],
+					components: [row],
+				})
+			} else channel.send({ 
 				embeds: [embed],
 				components: [row]
 			})

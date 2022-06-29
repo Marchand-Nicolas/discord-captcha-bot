@@ -21,6 +21,10 @@ catch {}
 
 client.login(token);
 
+process.on('uncaughtException', (err, origin) => {
+	console.log(err, origin)
+})
+
 const commands = [
 	{
 		name: 'captcha',
@@ -96,8 +100,22 @@ client.on('interactionCreate', async (interaction) => {
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) missingPermissions.push("Manage Messages")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) missingPermissions.push("Manage Roles")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) missingPermissions.push("Manage Channels")
-
 			if (missingPermissions.length > 0) return replyError(interaction, `These permissions are missing for the role <@&${botRole.id}> : \`${missingPermissions.join(', ')}\``);
+			missingChannelPermissions = []
+			if(!channel.permissionsFor(client.user.id).has(['VIEW_CHANNEL'])) missingChannelPermissions.push("View Channel")
+			if(!channel.permissionsFor(client.user.id).has(['SEND_MESSAGES'])) missingChannelPermissions.push("Send Messages")
+			if(!channel.permissionsFor(client.user.id).has(['USE_EXTERNAL_EMOJIS'])) missingChannelPermissions.push("Use External Emojis")
+			if(!channel.permissionsFor(client.user.id).has(['ATTACH_FILES'])) missingChannelPermissions.push("Attach Files")
+			if(!channel.permissionsFor(client.user.id).has(['EMBED_LINKS'])) missingChannelPermissions.push("Embed Links")
+			if(!channel.permissionsFor(client.user.id).has(['READ_MESSAGE_HISTORY'])) missingChannelPermissions.push("Read Message History")
+			if(!channel.permissionsFor(client.user.id).has(['MANAGE_MESSAGES'])) missingChannelPermissions.push("Manage Messages")
+			if(!channel.permissionsFor(client.user.id).has(['MANAGE_ROLES'])) missingChannel.push("Manage Roles")
+			if(!channel.permissionsFor(client.user.id).has(['MANAGE_CHANNELS'])) missingChannelPermissions.push("Manage Channel")
+			console.log(channel.permissionsFor(client.user.id))
+
+			if (missingChannelPermissions.length > 0) return replyError(interaction, 
+			`The global permissions for my role are correct, however, some of the permissions I need in this channel are missing. Please add the following permissions for me in the targeted channel: \`${missingChannelPermissions.join(', ')}\`\n
+			If the problem persists, please give me the administrator permissions or contact my support team`);
 			const row = new MessageActionRow()
 				.addComponents(
 					new MessageButton()
@@ -105,8 +123,8 @@ client.on('interactionCreate', async (interaction) => {
 						.setLabel('Verify')
 						.setStyle('SUCCESS'),
 			);
-			channel.permissionOverwrites.edit(clientId, { SEND_MESSAGES: true, VIEW_CHANNEL: true});
-			const embed = new MessageEmbed()
+			channel.permissionOverwrites.edit(clientId, { SEND_MESSAGES: true, VIEW_CHANNEL: true}).catch()
+			/*const embed = new MessageEmbed()
 			.setColor('#32a852')
 			.setTitle('Captcha')
 			.setDescription('The server is protected against bots using a Captcha, click on **Verify** to access the server.')
@@ -120,7 +138,7 @@ client.on('interactionCreate', async (interaction) => {
 			role.setPermissions(Permissions.FLAGS.VIEW_CHANNEL);
 			await interaction.reply(
 				`✅ Everything has been successfully set up in <#${channel.id}>`
-			);
+			);*/
 		}
 	}
 	else if (interaction.isButton()) {
@@ -136,7 +154,6 @@ client.on('interactionCreate', async (interaction) => {
 			if (!botRole.permissions.has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS)) missingPermissions.push("Use External Emojis")
 			if (!botRole.permissions.has(Permissions.FLAGS.ATTACH_FILES)) missingPermissions.push("Attach Files")
 			if (!botRole.permissions.has(Permissions.FLAGS.EMBED_LINKS)) missingPermissions.push("Embed Links")
-			if (!botRole.permissions.has(Permissions.FLAGS.READ_MESSAGE_HISTORY)) missingPermissions.push("Read Message History")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) missingPermissions.push("Manage Messages")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) missingPermissions.push("Manage Roles")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) missingPermissions.push("Manage Channels")

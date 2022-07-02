@@ -155,7 +155,6 @@ client.on('interactionCreate', async (interaction) => {
 			.setColor('#74d579')
 			.setTitle(customTitle ? customTitle.value : 'Are you a robot ?')
 			.setDescription(customDescription ? customDescription.value : 'The server is protected against bots using a Captcha, click on **Verify** to access the server.')
-			.setAuthor({name:'Captcha', iconURL:'https://i.imgur.com/m2jRNLg.png'})
 			if (customBotAvatar || customBotName) {
 				const webhooks = await channel.fetchWebhooks();
 				let webhook = webhooks.find(wh => wh.token);

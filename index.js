@@ -4,6 +4,7 @@ const { Client, Intents, Permissions, MessageAttachment, MessageActionRow, Messa
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 const fs = require('node:fs');
 const Captcha = require("@haileybot/captcha-generator");
+const fetch = require("isomorphic-fetch");
 
 let verifyCollectors = {}
 
@@ -183,6 +184,31 @@ client.on('interactionCreate', async (interaction) => {
 	else if (interaction.isButton()) {
 		const roleId = interaction.customId.split('Verify-')[1];
 		if (roleId) {
+			fetch(`https://captcha-api.heyko.org/status`, { method: 'POST', body : `{ "guildId": "${interaction.guild.id}" }` }).then(res => res.json()).then(res => {
+				if (res.result) {
+					if (res.status) {
+						if (interaction.message.embeds.length > 1) {
+							interaction.message.edit({ 
+								embeds: [interaction.message.embeds[0]]
+							})
+						}
+					}
+					else {
+						const embed = new MessageEmbed()
+						.setColor('#fc0303')
+						.setTitle('You are currently using the free version of the bot')
+						.setDescription(`❌ To guarantee the uptime of our service, as well as its quality, it is necessary that the bot is paid. However, **your server does not currently have a licence**. More information [here](https://discord-captcha-web.vercel.app/).
+						
+						__To buy the license__: [Click here](https://discord-captcha-web.vercel.app/dashboard?guild=${interaction.guild.id})
+
+						This message will be removed the next time someone clicks on "Verify", assuming that one of the server administrators has purchased a licence for it.
+						`)
+						interaction.message.edit({ 
+							embeds: [interaction.message.embeds[0], embed]
+						})
+					}
+                }
+			})
 			const member = interaction.member;
 			const role = member.guild.roles.cache.get(roleId);
 			if (!checkBotRolePosition(role, interaction.guild)) return replyError(interaction, 'My role must be higher than the role specified by the administrator. Please contact him/her.');

@@ -67,6 +67,10 @@ const commands = [
 			}
 		]
 	},
+	{
+		name: 'help',
+		description: 'More informations about how to use the bot',
+	}
 ];
 
 
@@ -179,6 +183,29 @@ client.on('interactionCreate', async (interaction) => {
 			await interaction.reply(
 				`✅ Everything has been successfully set up in <#${channel.id}>`
 			);
+		}
+		else if (interaction.commandName === 'help') {
+			const embed = new MessageEmbed()
+				.setColor('#74d579')
+				.setTitle('Help')
+				.setDescription(`
+					**Setup the Captcha system :**
+					\`\`\`
+/catpcha [role] [channel] [title] [description] [bot avatar] [bot name]
+					\`\`\`
+						__required__
+						__role__: The role that will be used to verify the user.
+						__channel__: The channel where the captcha will be displayed.
+						title: The title of the captcha.
+						description: The description of the captcha.
+						bot avatar: The avatar of the bot.
+						bot name: The name of the bot.
+
+						● [Website](https://discord-captcha-web.vercel.app/)
+						● [Documentation](https://discord-captcha-web.vercel.app/docs)
+						● [Dashboard](https://discord-captcha-web.vercel.app/dashboard)
+				`)
+			interaction.reply({ embeds: [embed] });
 		}
 	}
 	else if (interaction.isButton()) {

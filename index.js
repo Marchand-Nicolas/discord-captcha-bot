@@ -75,6 +75,7 @@ const commands = [
 
 
 
+
 const rest = new REST({ version: '9' }).setToken(token);
 
 (async () => {
@@ -213,10 +214,26 @@ client.on('interactionCreate', async (interaction) => {
 		if (roleId) {
 			fetch(`https://captcha-api.heyko.org/status`, { method: 'POST', body : `{ "guildId": "${interaction.guild.id}" }` }).then(res => res.json()).then(res => {
 				if (res.result) {
-					if (res.status) {
-						if (interaction.message.embeds.length > 1) {
+					if (interaction.message.author.id === client.user.id) {
+						if (res.status) {
+							if (interaction.message.embeds.length > 1) {
+								interaction.message.edit({ 
+									embeds: [interaction.message.embeds[0]]
+								})
+							}
+						}
+						else {
+							const embed = new MessageEmbed()
+							.setColor('#fc0303')
+							.setTitle('You are currently using the free version of the bot')
+							.setDescription(`❌ To guarantee the uptime of our service, as well as its quality, it is necessary that the bot is paid. However, **your server does not currently have a licence**. More information [here](https://discord-captcha-web.vercel.app/).
+							
+							__To buy the license__: [Click here](https://discord-captcha-web.vercel.app/dashboard?guild=${interaction.guild.id})
+
+							This message will be removed the next time someone clicks on "Verify", assuming that one of the server administrators has purchased a licence for it.
+							`)
 							interaction.message.edit({ 
-								embeds: [interaction.message.embeds[0]]
+								embeds: [interaction.message.embeds[0], embed]
 							})
 						}
 					}
@@ -228,11 +245,10 @@ client.on('interactionCreate', async (interaction) => {
 						
 						__To buy the license__: [Click here](https://discord-captcha-web.vercel.app/dashboard?guild=${interaction.guild.id})
 
-						This message will be removed the next time someone clicks on "Verify", assuming that one of the server administrators has purchased a licence for it.
+						**You can't use a custom username or avatar for the bot with the free version! Try again without setting its options, or buy the license.**
 						`)
-						interaction.message.edit({ 
-							embeds: [interaction.message.embeds[0], embed]
-						})
+						interaction.channel.send({ embeds: [embed] })
+						interaction.message.delete();
 					}
                 }
 			})

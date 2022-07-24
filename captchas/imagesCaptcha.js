@@ -52,8 +52,8 @@ module.exports = {
             ctx.fillStyle = '#ffffff'
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 6;
-            ctx.strokeText(index + 1, x + 5, y + 22)
-            ctx.fillText(index + 1, x + 5, y + 22);
+            ctx.strokeText((index + 1).toString(), x + 5, y + 22)
+            ctx.fillText((index + 1).toString(), x + 5, y + 22);
             x+= 70
             if (x > 140) {
                 x = 0;

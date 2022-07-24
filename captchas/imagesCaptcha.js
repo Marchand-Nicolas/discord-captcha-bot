@@ -48,10 +48,9 @@ module.exports = {
                 ctx.drawImage(image, -35, -35, 70, 70)
             })
             ctx.restore()
-            ctx.font = '20px Impact'
             ctx.fillStyle = '#ffffff'
             ctx.strokeStyle = 'black';
-            ctx.lineWidth = 6;
+            ctx.lineWidth = 4;
             ctx.strokeText((index + 1).toString(), x + 5, y + 22)
             ctx.fillText((index + 1).toString(), x + 5, y + 22);
             x+= 70

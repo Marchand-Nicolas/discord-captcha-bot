@@ -5,9 +5,11 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 const fs = require('node:fs');
 const Captcha = require("@haileybot/captcha-generator");
 const fetch = require("isomorphic-fetch");
-const { createCanvas, loadImage } = require('canvas')
+const { createCanvas, loadImage, registerFont } = require('canvas')
 const { sendImagesCaptcha } = require('./captchas/imagesCaptcha');
 const { maxInteractionDuration } = require('./globalConfig.json');
+
+registerFont('./fonts/PfennigBoldItalic.ttf', { family: 'PfennigBoldItalic' })
 
 let verifyCollectors = {}
 let captchaDatas = {}

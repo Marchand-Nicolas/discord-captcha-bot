@@ -48,6 +48,7 @@ module.exports = {
                 ctx.drawImage(image, -35, -35, 70, 70)
             })
             ctx.restore()
+            ctx.font = "18px PfennigBoldItalic";
             ctx.fillStyle = '#ffffff'
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 4;

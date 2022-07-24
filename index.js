@@ -5,8 +5,12 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 const fs = require('node:fs');
 const Captcha = require("@haileybot/captcha-generator");
 const fetch = require("isomorphic-fetch");
+const { createCanvas, loadImage } = require('canvas')
+const { sendImagesCaptcha } = require('./captchas/imagesCaptcha');
+const { maxInteractionDuration } = require('./globalConfig.json');
 
 let verifyCollectors = {}
+let captchaDatas = {}
 
 let token = process.env.TOKEN;
 let clientId = process.env.CLIENT_ID;
@@ -42,6 +46,21 @@ const commands = [
 				required: true,
 			},
 			{
+				name: 'type',
+				description: 'captcha type, not required',
+				type: 4,
+				choices: [
+					{ 
+						name: "Find the image in the right orientation (recommended)",
+						value: 1
+					},
+					{
+						name: "Write the displayed text",
+						value: 2
+					}
+				],
+			},
+			{
 				name: 'custom-avatar',
 				description: 'custom avatar for the bot, not required',
 				type: 11,
@@ -73,7 +92,25 @@ const commands = [
 	}
 ];
 
+const totalImages = fs.readdirSync('images')
 
+//downloadImages(0)
+async function downloadImages(counter) {
+	const images = await (await fetch("https://api.thedogapi.com/v1/images/search?size=med&mime_types=jpg&format=json&order=RANDOM&limit=100")).json()
+	for (let index = 0; index < images.length; index++) {
+		const image = images[index];
+		const canvas = createCanvas(70, 70)
+		const ctx = canvas.getContext('2d')
+		await loadImage(image.url).then((image) => {
+			ctx.drawImage(image, 0, 0, 70, 70)
+		})
+		const out = fs.createWriteStream(`images/${image.id}.${image.url.split('.').pop()}`)
+		const stream = canvas.createPNGStream()
+		stream.pipe(out)
+		counter++
+	}
+	downloadImages(counter)
+}
 
 
 const rest = new REST({ version: '9' }).setToken(token);
@@ -92,8 +129,6 @@ const rest = new REST({ version: '9' }).setToken(token);
 	}
 })();
 
-const maxInteractionDuration = 1400000;
-
 function checkBotRolePosition(role, guild) {
 	return role.position < guild.me.roles.highest.position;
 }
@@ -109,6 +144,11 @@ function replyError(interaction, error) {
 	});
 }
 
+const captchaTypes = {
+	text: "T2"
+}
+
+
 client.on('interactionCreate', async (interaction) => {
 	if (interaction.isCommand()) {
 		if (interaction.commandName === 'captcha') {
@@ -119,6 +159,7 @@ client.on('interactionCreate', async (interaction) => {
 			if (!checkBotRolePosition(role, interaction.guild)) return replyError(interaction, 'My role need to be higher than the role you specified.');
 			let missingPermissions = []
 			const botRole = interaction.guild.me.roles.highest
+			const type = interaction.options.get("type") ? interaction.options.get("type").value : 1 || 1
 			const customBotAvatar = interaction.options.get("custom-avatar")
 			const customBotName = interaction.options.get("custom-name")
 			const customTitle = interaction.options.get("custom-title")
@@ -149,13 +190,19 @@ client.on('interactionCreate', async (interaction) => {
 			if (missingChannelPermissions.length > 0) return replyError(interaction, 
 			`The global permissions for my role are correct, however, some of the permissions I need in this channel are missing. Please add the following permissions for me in the targeted channel: \`${missingChannelPermissions.join(', ')}\`\n
 			If the problem persists, please give me the administrator permissions or contact my support team`);
+			let additionalDatas = ""
+			switch (type) {
+				case 2:
+					additionalDatas = captchaTypes.text
+				break;
+			}
 			const row = new MessageActionRow()
 				.addComponents(
 					new MessageButton()
-						.setCustomId(`Verify-${role.id}`)
+						.setCustomId(`${additionalDatas}Verify-${role.id}`)
 						.setLabel('Verify')
 						.setStyle('SUCCESS'),
-			);
+				);
 			channel.permissionOverwrites.edit(clientId, { SEND_MESSAGES: true, VIEW_CHANNEL: true}).catch()
 			const embed = new MessageEmbed()
 			.setColor('#74d579')
@@ -211,7 +258,11 @@ client.on('interactionCreate', async (interaction) => {
 	}
 	else if (interaction.isButton()) {
 		const roleId = interaction.customId.split('Verify-')[1];
+		const imageId = interaction.customId.split("CaptchaImages_")[1]
+		const type = interaction.customId.split(captchaTypes.text).length > 1 ? 2 : 1;
+		const member = interaction.member;
 		if (roleId) {
+			const role = member.guild.roles.cache.get(roleId);
 			fetch(`https://captcha-api.heyko.org/status`, { method: 'POST', body : `{ "guildId": "${interaction.guild.id}" }` }).then(res => res.json()).then(res => {
 				if (res.result) {
 					if (interaction.message.author.id === client.user.id) {
@@ -252,17 +303,15 @@ client.on('interactionCreate', async (interaction) => {
 					}
                 }
 			})
-			const member = interaction.member;
-			const role = member.guild.roles.cache.get(roleId);
 			if (!checkBotRolePosition(role, interaction.guild)) return replyError(interaction, 'My role must be higher than the role specified by the administrator. Please contact him/her.');
 			let missingPermissions = []
 			const botRole = interaction.guild.me.roles.highest
 			if (!botRole.permissions.has(Permissions.FLAGS.VIEW_CHANNEL)) missingPermissions.push("View Channel")
-			if (!botRole.permissions.has(Permissions.FLAGS.SEND_MESSAGES)) missingPermissions.push("Send Messages")
-			if (!botRole.permissions.has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS)) missingPermissions.push("Use External Emojis")
+			if (!botRole.permissions.has(Permissions.FLAGS.SEND_MESSAGES) && type !== 1) missingPermissions.push("Send Messages")
+			if (!botRole.permissions.has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS) && type !== 1) missingPermissions.push("Use External Emojis")
 			if (!botRole.permissions.has(Permissions.FLAGS.ATTACH_FILES)) missingPermissions.push("Attach Files")
 			if (!botRole.permissions.has(Permissions.FLAGS.EMBED_LINKS)) missingPermissions.push("Embed Links")
-			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) missingPermissions.push("Manage Messages")
+			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES) && type !== 1) missingPermissions.push("Manage Messages")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) missingPermissions.push("Manage Roles")
 			if (!botRole.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) missingPermissions.push("Manage Channels")
 
@@ -272,45 +321,83 @@ client.on('interactionCreate', async (interaction) => {
 			const embed = new MessageEmbed()
 			.setColor('#74d579')
 			.setTitle('Captcha')
-			.setDescription(`
-			<a:Loading:991374833541718156> <@${member.id}> please enter the letters you see in the image (Captcha) to access the server.\n
-			Expires <t:${date}:R>
-			`)
 			.setThumbnail('https://i.imgur.com/m2jRNLg.png')
-			interaction.reply({
-				embeds: [embed],
-				files: [new MessageAttachment(captcha.JPEGStream, "captcha.jpeg")],
-				ephemeral: true  }).then(() => {
-				const filter = message => message.author.id === member.id
-				if (verifyCollectors[member.id]) {
-					verifyCollectors[member.id].stop();
+			switch (type) {
+				case 2:
+					embed.setDescription(`
+					<a:Loading:991374833541718156> <@${member.id}> please enter the letters you see in the image (Captcha) to access the server.\n
+					Expires <t:${date}:R>
+					`)
+					interaction.reply({
+						embeds: [embed],
+						files: [new MessageAttachment(captcha.JPEGStream, "captcha.jpeg")],
+						ephemeral: true  }).then(() => {
+						const filter = message => message.author.id === member.id
+						if (verifyCollectors[member.id]) {
+							verifyCollectors[member.id].stop();
+						}
+						verifyCollectors[member.id] = interaction.channel.createMessageCollector({ filter, time: maxInteractionDuration + 1000 });
+						verifyCollectors[member.id].on("collect", message => {
+							if (message.content.toUpperCase() === captcha.value) {
+								verifyCollectors[member.id].stop();
+								interaction.channel.permissionOverwrites.delete(member.id);
+								member.roles.add(role).catch(console.error);
+								message.react('✅');
+								setTimeout(() => {
+									message.delete()
+								}, 1000);
+							}
+							else {
+								message.react('❌');
+								setTimeout(() => {
+									message.delete()
+								}, 1000);
+							}
+						});
+						verifyCollectors[member.id].on("end", () => {
+							delete verifyCollectors[member.id];
+						})
+						interaction.channel.permissionOverwrites.edit(member.id, { SEND_MESSAGES: true });
+						setTimeout(() => {
+							interaction.channel.permissionOverwrites.delete(member.id);
+						}, maxInteractionDuration);
+					});
+				break;
+				default:
+					sendImagesCaptcha(interaction, totalImages, captchaDatas, roleId)
+				break;
+			}
+		}
+		else if (imageId) {
+			const step = parseInt(interaction.message.embeds[0].description.split('Step ')[1][0])
+			const maxSteps = parseInt(interaction.message.embeds[0].description.split('Step ')[1][2])
+			const roleId = interaction.customId.split('role_')[1].split("_")[0];
+			const datas = captchaDatas[interaction.member]
+			if (!datas) return
+			if (imageId == datas.selectedImage) {
+				if (step >= maxSteps) {
+					const role = member.guild.roles.cache.get(roleId);
+					interaction.reply({ content: "<a:Loading:991374833541718156> <@" + member.id + "> you have been granted the role " + role.name + ".", ephemeral: true });
+					interaction.member.roles.add(role).catch(console.error);
 				}
-				verifyCollectors[member.id] = interaction.channel.createMessageCollector({ filter, time: maxInteractionDuration + 1000 });
-				verifyCollectors[member.id].on("collect", message => {
-					if (message.content.toUpperCase() === captcha.value) {
-						verifyCollectors[member.id].stop();
-						interaction.channel.permissionOverwrites.delete(member.id);
-						member.roles.add(role).catch(console.error);
-						message.react('✅');
-						setTimeout(() => {
-							message.delete()
-						}, 1000);
-					}
-					else {
-						message.react('❌');
-						setTimeout(() => {
-							message.delete()
-						}, 1000);
-					}
-				});
-				verifyCollectors[member.id].on("end", () => {
-					delete verifyCollectors[member.id];
-				})
-				interaction.channel.permissionOverwrites.edit(member.id, { SEND_MESSAGES: true });
-				setTimeout(() => {
-					interaction.channel.permissionOverwrites.delete(member.id);
-				}, maxInteractionDuration);
-			});
+				else {
+					sendImagesCaptcha(interaction, totalImages, captchaDatas, roleId, step + 1)
+				}
+			}
+			else {
+				sendImagesCaptcha(interaction, totalImages, captchaDatas, roleId, 1, "❌ <@" + member.id + "> You have not selected the right image. Please try again from the begining.")
+			}
 		}
 	}
 });
+
+clearCaptchaDatas()
+function clearCaptchaDatas() {
+	const keys = Object.keys(captchaDatas);
+	for (let index = 0; index < keys.length; index++) {
+		const key = keys[index];
+		const element = captchaDatas[key];
+		if (element.date < Date.now() - maxInteractionDuration) delete captchaDatas[key];
+	}
+	setTimeout(clearCaptchaDatas, 10000);
+}

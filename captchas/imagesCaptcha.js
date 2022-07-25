@@ -1,6 +1,7 @@
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const { createCanvas, loadImage } = require('canvas')
 const { maxInteractionDuration } = require('../globalConfig.json');
+const { getRandomInt } = require('../utils/int');
 
 module.exports = {
         sendImagesCaptcha : async function sendImagesCaptcha(interaction, totalImages, captchaDatas, roleId, steps=1, error="") {
@@ -36,13 +37,13 @@ module.exports = {
         await loadImage(`images/${image}`).then((image) => {
             ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
         })
+        ctx.rotate(0.02)
         for (let index = 0; index < imageNumber; index++) {
             ctx.save();
             ctx.translate(x + 35, y + 35);
             if (selectedImage != index) {
-                ctx.rotate(random(Math.PI * 0.8, Math.PI * 1.2));
+                ctx.rotate(Math.PI * 0.5 * getRandomInt(1, 3));
             }
-            ctx.rotate(0.1)
             const image = totalImages[Math.floor(Math.random() * totalImages.length)] 
             await loadImage(`images/${image}`).then((image) => {
                 ctx.drawImage(image, -35, -35, 70, 70)

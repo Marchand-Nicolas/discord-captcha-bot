@@ -150,7 +150,6 @@ const captchaTypes = {
 	text: "T2"
 }
 
-
 client.on('interactionCreate', async (interaction) => {
 	if (interaction.isCommand()) {
 		if (interaction.commandName === 'captcha') {

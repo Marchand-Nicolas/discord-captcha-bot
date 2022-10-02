@@ -378,7 +378,7 @@ client.on('interactionCreate', async (interaction) => {
 			if (imageId == datas.selectedImage) {
 				if (step >= maxSteps) {
 					const role = member.guild.roles.cache.get(roleId);
-					interaction.reply({ content: "<a:Loading:991374833541718156> <@" + member.id + "> you have been granted the role " + role.name + ".", ephemeral: true });
+					interaction.reply({ content: "✅ Success.", ephemeral: true });
 					interaction.member.roles.add(role).catch(console.error);
 				}
 				else {

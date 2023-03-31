@@ -5,7 +5,7 @@
     "@haileybot/captcha-generator": "^1.7.0",
     "canvas": "^2.9.3",
     "discord-api-types": "^0.35.0",
-    "discord.js": "^13.8.1",
+    "discord.js": "^13.14.0",
     "isomorphic-fetch": "^3.0.0",
     "request": "^2.88.2"
   },

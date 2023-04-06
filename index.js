@@ -50,6 +50,14 @@ const cache = {
   guilds: {},
 };
 
+client.on("ready", () => {
+  const time = 12 * 60 * 60 * 1000;
+  const printServerSize = () =>
+    console.log(`Bot on ${client.guilds.cache.size} servers`);
+  setInterval(printServerSize, time);
+  printServerSize();
+});
+
 // Clear cached interactions older than 12 hours
 const time = 12 * 60 * 60 * 1000;
 setInterval(() => {

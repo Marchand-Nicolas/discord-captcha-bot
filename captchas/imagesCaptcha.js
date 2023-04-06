@@ -2,6 +2,7 @@ const { MessageActionRow, MessageButton, MessageEmbed } = require("discord.js");
 const { createCanvas, loadImage } = require("canvas");
 const { maxInteractionDuration } = require("../globalConfig.json");
 const { getRandomInt } = require("../utils/int");
+const path = require("node:path");
 
 module.exports = {
   sendImagesCaptcha: async function sendImagesCaptcha(
@@ -70,9 +71,11 @@ module.exports = {
       selectedImage: selectedImage,
     };
     const image = totalImages[Math.floor(Math.random() * totalImages.length)];
-    await loadImage(`images/${image}`).then((image) => {
-      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-    });
+    await loadImage(path.join(__dirname, `../images/${image}`)).then(
+      (image) => {
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      }
+    );
     ctx.rotate(0.02);
     for (let index = 0; index < imageNumber; index++) {
       ctx.save();
@@ -81,9 +84,11 @@ module.exports = {
         ctx.rotate(Math.PI * 0.5 * getRandomInt(1, 3));
       }
       const image = totalImages[Math.floor(Math.random() * totalImages.length)];
-      await loadImage(`images/${image}`).then((image) => {
-        ctx.drawImage(image, -35, -35, 70, 70);
-      });
+      await loadImage(path.join(__dirname, `../images/${image}`)).then(
+        (image) => {
+          ctx.drawImage(image, -35, -35, 70, 70);
+        }
+      );
       ctx.restore();
       ctx.font = "18px PfennigBoldItalic";
       ctx.fillStyle = "#ffffff";

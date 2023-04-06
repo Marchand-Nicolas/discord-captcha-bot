@@ -22,8 +22,13 @@ const fetch = require("isomorphic-fetch");
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const { sendImagesCaptcha } = require("./captchas/imagesCaptcha");
 const { maxInteractionDuration } = require("./globalConfig.json");
+const path = require("node:path");
 
-registerFont("./fonts/PfennigBoldItalic.ttf", { family: "PfennigBoldItalic" });
+console.log("Dir:", __dirname);
+
+registerFont(path.join(__dirname, "fonts/PfennigBoldItalic.ttf"), {
+  family: "PfennigBoldItalic",
+});
 
 let verifyCollectors = {};
 let captchaDatas = {};
@@ -122,7 +127,7 @@ const commands = [
   },
 ];
 
-const totalImages = fs.readdirSync("images");
+const totalImages = fs.readdirSync(path.join(__dirname, "images"));
 
 //downloadImages(0)
 async function downloadImages(counter) {

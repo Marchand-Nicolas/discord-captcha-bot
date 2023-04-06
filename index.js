@@ -52,10 +52,14 @@ const cache = {
 
 client.on("ready", () => {
   const time = 12 * 60 * 60 * 1000;
-  const printServerSize = () =>
+  const update = () => {
     console.log(`Bot on ${client.guilds.cache.size} servers`);
-  setInterval(printServerSize, time);
-  printServerSize();
+    client.user.setActivity("/help | captcha-b.vercel.app", {
+      type: "WATCHING",
+    });
+  };
+  setInterval(update, time);
+  update();
 });
 
 // Clear cached interactions older than 12 hours
